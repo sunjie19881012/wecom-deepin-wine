@@ -46,12 +46,9 @@ sudo apt-mark hold deepin-wine10-stable deepin-wine-helper com.qq.weixin.work.de
 deepin-elf-verify 依赖于 libssl1.1 (>= 1.1.1)
 ```
 
-**原因：** Ubuntu 26.04 使用 libssl3，不再提供 libssl1.1。
+**原因：** Ubuntu 26.04 使用 libssl3，不再提供 libssl1.1。该包仅用于 ELF 程序验证，企业微信运行时不需要。
 
-**解决：** 强制安装跳过此依赖（不影响企业微信运行）：
-```bash
-sudo dpkg -i --force-depends deepin-elf-verify_*.deb
-```
+**解决：** 本项目的安装脚本已重新打包 `deepin-wine10-stable` 和 `deepin-wine-helper`，移除了对 `deepin-elf-verify` 的依赖，因此无需安装该包。如果手动安装时遇到此问题，请使用本项目 `packages/` 目录下的补丁版 deb。
 
 ---
 
@@ -135,7 +132,7 @@ rm -rf ~/.deepinwine ~/.local/share/deepin-wine
 sudo apt-mark unhold deepin-wine10-stable deepin-wine-helper com.qq.weixin.work.deepin
 
 # 卸载
-sudo apt-get remove --purge com.qq.weixin.work.deepin deepin-wine10-stable deepin-wine-helper deepin-elf-verify dummy-libsane
+sudo apt-get remove --purge com.qq.weixin.work.deepin deepin-wine10-stable deepin-wine-helper dummy-libsane
 
 # 清理源
 sudo rm /etc/apt/sources.list.d/deepin-wine.i-m.dev.list

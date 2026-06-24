@@ -18,7 +18,7 @@
 ## 🚀 快速安装
 
 ```bash
-git clone https://github.com/<your-username>/wecom-deepin-wine.git
+git clone https://github.com/sunjie19881012/wecom-deepin-wine.git
 cd wecom-deepin-wine
 sudo bash install.sh
 ```
@@ -54,7 +54,6 @@ Ubuntu 的 `libsane1` 包没有声明 `Provides: libsane`，而 `deepin-wine10-s
 └── docs/
     └── troubleshooting.md # 常见问题
 ```
-
 ## 🔧 手动安装
 
 如果脚本无法使用，可手动安装：
@@ -90,14 +89,13 @@ sudo dpkg -i packages/dummy-libsane_1.0_all.deb
 # 8. 安装主程序（使用修改后的包）
 sudo dpkg -i packages/deepin-wine10-stable-patched.deb
 sudo dpkg -i deepin-wine-helper_*.deb
-sudo dpkg -i --force-depends deepin-elf-verify_*.deb
 sudo dpkg -i com.qq.weixin.work.deepin_*.deb
 
 # 9. 安装运行时依赖
 sudo apt-get install -y libasound2-plugins libcapi20-3
 
 # 10. 配置应用图标
-sudo tee /etc/profile.d/deepin-wine.i-m.dev.sh > /dev/null << "EOF'
+sudo tee /etc/profile.d/deepin-wine.i-m.dev.sh > /dev/null << "EOF"
 XDG_DATA_DIRS=${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
 for deepin_dir in /opt/apps/*/entries; do
     if [ -d "$deepin_dir/applications" ]; then
@@ -127,7 +125,7 @@ sudo apt-mark hold deepin-wine10-stable deepin-wine-helper com.qq.weixin.work.de
 
 ```bash
 sudo apt-mark unhold deepin-wine10-stable deepin-wine-helper com.qq.weixin.work.deepin
-sudo apt-get remove --purge com.qq.weixin.work.deepin deepin-wine10-stable deepin-wine-helper deepin-elf-verify dummy-libsane
+sudo apt-get remove --purge com.qq.weixin.work.deepin deepin-wine10-stable deepin-wine-helper dummy-libsane
 ```
 </details>
 

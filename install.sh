@@ -24,8 +24,6 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# 脚本所在目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORK_DIR=$(mktemp -d)
 trap 'rm -rf "$WORK_DIR"' EXIT
 
@@ -87,12 +85,6 @@ apt-get download deepin-wine10-stable
 info "下载企业微信主包（约 700MB，请耐心等待）..."
 apt-get download com.qq.weixin.work.deepin
 
-info "下载 deepin-elf-verify..."
-# deepin-elf-verify 不在 i-m.dev 源中，从 community-packages 下载
-if ! wget -q "https://cdn-community-packages.deepin.com/deepin/pool/main/d/deepin-elf-verify/deepin-elf-verify_1.2.0.6-1_amd64.deb"; then
-    warn "deepin-elf-verify 下载失败，将尝试跳过"
-fi
-
 step "步骤 7/9：构建补丁包"
 
 info "构建 dummy-libsane 补丁包..."
@@ -113,7 +105,9 @@ info "重新打包 deepin-wine10-stable（移除无法满足的依赖）..."
 WINE_DEB=$(ls deepin-wine10-stable_*.deb | head -1)
 mkdir -p wine-repack/extracted
 dpkg-deb -R "$WINE_DEB" wine-repack/extracted
-# 移除 Ubuntu 上无法满足的依赖
+# 移除 Ubuntu 上无法满足的依赖：libsane（由补丁包提供）、
+# libcapi20-3、libasound2-plugins（实际运行时无需）、
+# deepin-elf-verify（依赖缺失的 libssl1.1，运行时不用）
 sed -i \
     -e 's/, libcapi20-3,/,/g' \
     -e 's/, libsane (>= 1.0.24),/,/g' \
@@ -124,6 +118,15 @@ sed -i \
 sed -i 's/^Version: 10.14deepin8/Version: 10.14deepin8patched1/' wine-repack/extracted/DEBIAN/control
 dpkg-deb --root-owner-group -b wine-repack/extracted deepin-wine10-stable-patched.deb
 
+info "重新打包 deepin-wine-helper（移除 deepin-elf-verify 依赖）..."
+HELPER_DEB=$(ls deepin-wine-helper_*.deb | head -1)
+mkdir -p helper-repack/extracted
+dpkg-deb -R "$HELPER_DEB" helper-repack/extracted
+# helper 依赖 deepin-elf-verify，但实际运行不需要
+sed -i -e 's/, deepin-elf-verify (>= 1.1.10-1)//g' \
+    helper-repack/extracted/DEBIAN/control
+dpkg-deb --root-owner-group -b helper-repack/extracted deepin-wine-helper-patched.deb
+
 step "步骤 8/9：安装所有包"
 
 info "安装 dummy-libsane..."
@@ -132,13 +135,8 @@ dpkg -i dummy-libsane_1.0_all.deb
 info "安装 deepin-wine10-stable（已补丁）..."
 dpkg -i deepin-wine10-stable-patched.deb
 
-info "安装 deepin-wine-helper..."
-dpkg -i deepin-wine-helper_*.deb
-
-info "安装 deepin-elf-verify（强制，跳过 libssl1.1 依赖）..."
-if [ -f deepin-elf-verify_*.deb ]; then
-    dpkg -i --force-depends deepin-elf-verify_*.deb || warn "deepin-elf-verify 安装失败，但不影响使用"
-fi
+info "安装 deepin-wine-helper（已补丁）..."
+dpkg -i deepin-wine-helper-patched.deb
 
 info "安装企业微信主包..."
 dpkg -i com.qq.weixin.work.deepin_*.deb

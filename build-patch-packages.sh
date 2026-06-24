@@ -37,7 +37,9 @@ rm -rf wine-repack
 mkdir -p wine-repack/extracted
 dpkg-deb -R "$WINE_DEB" wine-repack/extracted
 
-# 移除 Ubuntu 上无法满足的依赖
+# 移除 Ubuntu 上无法满足的依赖：libsane（由补丁包提供）、
+# libcapi20-3、libasound2-plugins（实际运行时无需）、
+# deepin-elf-verify（依赖缺失的 libssl1.1，运行时不用）
 sed -i \
     -e 's/, libcapi20-3,/,/g' \
     -e 's/, libsane (>= 1.0.24),/,/g' \
@@ -50,6 +52,25 @@ sed -i 's/^Version: 10.14deepin8/Version: 10.14deepin8patched1/' wine-repack/ext
 
 dpkg-deb --root-owner-group -b wine-repack/extracted "$PACKAGES_DIR/deepin-wine10-stable-patched.deb"
 rm -rf wine-repack
+
+echo ""
+echo "=== 下载并重新打包 deepin-wine-helper ==="
+if [ ! -f deepin-wine-helper_*.deb ]; then
+    echo "下载 deepin-wine-helper..."
+    apt-get download deepin-wine-helper
+fi
+
+HELPER_DEB=$(ls deepin-wine-helper_*.deb | head -1)
+rm -rf helper-repack
+mkdir -p helper-repack/extracted
+dpkg-deb -R "$HELPER_DEB" helper-repack/extracted
+
+# helper 依赖 deepin-elf-verify，但实际运行不需要
+sed -i -e 's/, deepin-elf-verify (>= 1.1.10-1)//g' \
+    helper-repack/extracted/DEBIAN/control
+
+dpkg-deb --root-owner-group -b helper-repack/extracted "$PACKAGES_DIR/deepin-wine-helper-patched.deb"
+rm -rf helper-repack
 
 echo ""
 echo "=== 完成 ==="
