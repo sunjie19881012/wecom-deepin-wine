@@ -1,0 +1,19 @@
+# 下载的大文件（约 700MB，不放仓库）
+*.deb
+!packages/*.deb
+
+# 临时文件
+tmp/
+*.tmp
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
